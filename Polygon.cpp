@@ -46,9 +46,15 @@ QList<QPointF> calculateInnerPolygon(const QList<QPointF> & _polygon, float _pad
         return QList<QPointF>();
     QList<Edge> edges;
     edges.reserve(_polygon.size());
-    QPointF vertex_a = _polygon[_polygon.size() - 1];
-    for(const QPointF & vertex_b: _polygon)
+
+    QPointF vertex_a = _polygon[0];
+    QPointF vertex_b;
+    for(qsizetype i = 1; i <= _polygon.size(); ++i)
     {
+        if(i == _polygon.size())
+            vertex_b = _polygon[0];
+        else
+            vertex_b = _polygon[i];
         Edge edge(vertex_a, vertex_b);
         std::optional<Edge> parallel_edge = edge.calculateParallelOffset(_padding, *direction);
         if(parallel_edge.has_value())
