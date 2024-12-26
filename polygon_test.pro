@@ -10,7 +10,7 @@ CONFIG += c++17
 
 SOURCES += \
     Canvas.cpp \
-    Math.cpp \
+    Line.cpp \
     Polygon.cpp \
     Triangulation.cpp \
     main.cpp \
@@ -18,10 +18,11 @@ SOURCES += \
 
 HEADERS += \
     Canvas.h \
+    Line.h \
     MainWindow.h \
-    Math.h \
     Polygon.h \
-    Triangulation.h
+    Triangulation.h \
+    VertexDirection.h
 
 FORMS += \
     MainWindow.ui

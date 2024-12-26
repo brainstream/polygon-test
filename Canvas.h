@@ -1,13 +1,14 @@
 #pragma once
 
 #include "Polygon.h"
+#include "Triangulation.h"
 #include <QWidget>
 
 class Canvas : public QWidget
 {
     Q_OBJECT
 public:
-    explicit Canvas(PolygonMesh & _polygon, QWidget * _parent = nullptr);
+    explicit Canvas(QWidget * _parent = nullptr);
 
 protected:
     void paintEvent(QPaintEvent * _event);
@@ -16,8 +17,8 @@ protected:
     void keyPressEvent(QKeyEvent * _event);
 
 private:
-    PolygonMesh & mr_polygon;
-    QList<QPointF> m_points;
-    QList<QPointF> m_inner_points;
+    Polygon m_polygon;
+    Triangulation m_triangulation;
+    QList<QPointF> m_inner_polygon_points;
     bool m_is_drawing;
 };
