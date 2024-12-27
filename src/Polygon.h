@@ -1,11 +1,11 @@
 #pragma once
 
-#include "VertexDirection.h"
 #include <QObject>
+#include <QList>
+#include <QPointF>
 
 class Polygon : public QList<QPointF>
 {
 public:
-    QList<QPointF> calculateInnerPolygon(float _padding) const;
-    std::optional<VertexDirection> calculateDirection() const;
+    QList<QList<QPointF>> calculateInnerPolygon(float _offset) const;
 };

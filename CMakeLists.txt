@@ -2,38 +2,49 @@ cmake_minimum_required(VERSION 3.28)
 
 project(polygon_test)
 
-set(CMAKE_AUTOUIC ON)
-set(CMAKE_AUTOMOC ON)
-set(CMAKE_AUTORCC ON)
-
-find_package(QT NAMES Qt6 REQUIRED COMPONENTS Widgets)
 find_package(Qt6 REQUIRED COMPONENTS Widgets)
+
+add_subdirectory(third_party/Clipper2/CPP)
 
 set(SRC_DIR src)
 
-set(SRC
-    ${SRC_DIR}/Canvas.cpp
+set(SRC_MOC
     ${SRC_DIR}/Canvas.h
-    ${SRC_DIR}/Line.cpp
-    ${SRC_DIR}/Line.h
+    ${SRC_DIR}/MainWindow.h
+)
+
+set(SRC_UI
+    ${SRC_DIR}/MainWindow.ui
+)
+
+qt6_wrap_cpp(SRC_MOC ${SRC_MOC})
+qt6_wrap_ui(SRC_UI ${SRC_UI})
+
+set(SRC
+    ${SRC_MOC}
+    ${SRC_UI}
+    ${SRC_DIR}/Canvas.cpp
     ${SRC_DIR}/main.cpp
     ${SRC_DIR}/MainWindow.cpp
-    ${SRC_DIR}/MainWindow.h
-    ${SRC_DIR}/MainWindow.ui
     ${SRC_DIR}/Polygon.cpp
     ${SRC_DIR}/Polygon.h
     ${SRC_DIR}/Triangulation.cpp
     ${SRC_DIR}/Triangulation.h
-    ${SRC_DIR}/VertexDirection.h
 )
 
-qt_add_executable(${PROJECT_NAME} MANUAL_FINALIZATION ${SRC})
+add_executable(${PROJECT_NAME} ${SRC})
 
-target_link_libraries(${PROJECT_NAME} PRIVATE Qt6::Widgets)
+target_link_libraries(
+    ${PROJECT_NAME}
+    Qt6::Core
+    Qt6::Gui
+    Qt6::Widgets
+    Clipper2
+)
 
 target_include_directories(
-    ${PROJECT_NAME}    
+    ${PROJECT_NAME}
     PRIVATE third_party/mapbox
+    PRIVATE third_party/Clipper2/CPP/Clipper2Lib/include
+    PRIVATE ${CMAKE_BINARY_DIR}
 )
-
-qt_finalize_executable(${PROJECT_NAME})

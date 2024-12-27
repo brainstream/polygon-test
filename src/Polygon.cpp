@@ -1,74 +1,29 @@
 #include "Polygon.h"
-#include "Line.h"
-#include <QSet>
-#include <optional>
-#include <cmath>
+#include <clipper2/clipper.h>
 
-namespace {
-
-float calculateSignedArea(const QList<QPointF> & _points)
+QList<QList<QPointF> > Polygon::calculateInnerPolygon(float _offset) const
 {
-    if(_points.size() < 3)
+    Clipper2Lib::PathsD polyline, solution;
+    std::vector<Clipper2Lib::PointD> points;
+    points.reserve(size() + 1);
+    for(const QPointF & point: *this)
     {
-        return 0.0f;
+        points.emplace_back(point.x(), point.y());
     }
-    float sum = _points[0].x() * (_points[1].y() - _points[_points.size() - 1].y()) +
-                _points[_points.size() - 1].x() * (_points[0].y() - _points[_points.size() - 2].y());
-    for(qsizetype i = 1; i < _points.size() - 1; ++i)
+    points.push_back({at(0).x(), at(0).y()});
+    polyline.push_back(points);
+    solution = InflatePaths(polyline, -_offset, Clipper2Lib::JoinType::Miter, Clipper2Lib::EndType::Polygon);
+    QList<QList<QPointF>> result;
+    result.reserve(solution.size());
+    for(const Clipper2Lib::PathD & path : solution)
     {
-        sum += _points[i].x() * (_points[i + 1].y() - _points[i - 1].y());
-    }
-    return 0.5f * sum;
-}
-
-QList<QPointF> calculatePolygonFromLines(const QList<Line> & _lines)
-{
-    QList<QPointF> result;
-    result.reserve(_lines.size());
-    const Line * prev_line = &_lines.last();
-    for(const Line & line : _lines)
-    {
-        std::optional<QPointF> point = prev_line->calculateInterception(line);
-        if(point.has_value())
-            result.push_back(*point);
-        prev_line = &line;
+        QList<QPointF> result_points;
+        result_points.reserve(path.size());
+        for(const Clipper2Lib::PointD & point : path) // FIXME: invert
+        {
+            result_points.emplace_back(point.x, point.y);
+        }
+        result.push_back(result_points);
     }
     return result;
-}
-
-} // namespace
-
-QList<QPointF> Polygon::calculateInnerPolygon(float _padding) const
-{
-    const std::optional<VertexDirection> direction = calculateDirection();
-    if(!direction.has_value())
-        return QList<QPointF>();
-
-    LineList origin_edges(*this);
-    LineList inner_lines;
-    inner_lines.reserve(origin_edges.size());
-    for(qsizetype i = 0; i < origin_edges.size(); ++i)
-    {
-        const Line & origin_edge = origin_edges[i];
-        const std::optional<Line> inner_edge = origin_edge.calculateParallelLine(_padding, *direction);
-        if(inner_edge.has_value())
-            inner_lines.push_back(*inner_edge);
-    }
-
-    QList<QPointF> result = calculatePolygonFromLines(inner_lines);
-    if(result.size() != size())
-    {
-        // TODO: error?
-        return result;
-    }
-
-    return result;
-}
-
-std::optional<VertexDirection> Polygon::calculateDirection() const
-{
-    const float signed_area = calculateSignedArea(*this);
-    if(signed_area == 0.0f)
-        return std::nullopt;
-    return signed_area > 0.0f ? VertexDirection::Clockwise : VertexDirection::Counterclockwise;
 }

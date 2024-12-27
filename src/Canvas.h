@@ -19,6 +19,6 @@ protected:
 private:
     Polygon m_polygon;
     Triangulation m_triangulation;
-    QList<QPointF> m_inner_polygon_points;
+    QList<QList<QPointF>> m_inner_polygons;
     bool m_is_drawing;
 };

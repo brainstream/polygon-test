@@ -65,8 +65,11 @@ void Canvas::paintEvent(QPaintEvent * _event)
     }
 
     painter.setPen(color_inner_polygon);
-    for(int i = 1; i < m_inner_polygon_points.size(); ++i)
-        painter.drawLine(m_inner_polygon_points[i - 1], m_inner_polygon_points[i]);
+    for(const QList<QPointF> & inner_polygon : m_inner_polygons)
+    {
+        for(int i = 1; i < inner_polygon.size(); ++i)
+            painter.drawLine(inner_polygon[i - 1], inner_polygon[i]);
+    }
 }
 
 void Canvas::mouseReleaseEvent(QMouseEvent * _event)
@@ -78,7 +81,7 @@ void Canvas::mouseReleaseEvent(QMouseEvent * _event)
     else
     {
         m_polygon.clear();
-        m_inner_polygon_points.clear();
+        m_inner_polygons.clear();
         m_polygon.push_back(_event->pos());
         m_is_drawing = true;
     }
@@ -97,19 +100,24 @@ void Canvas::keyPressEvent(QKeyEvent * _event)
 {
 
     if(_event->key() != Qt::Key_Return && _event->key() != Qt::Key_Enter)
+    {
         return;
+    }
     m_is_drawing = false;
     if(m_polygon.size() <= 1)
     {
         m_polygon.clear();
-        m_inner_polygon_points.clear();
+        m_inner_polygons.clear();
     }
     else
     {
         m_triangulation.calculate(m_polygon);
-        m_inner_polygon_points = m_polygon.calculateInnerPolygon(62.0f);
-        if(!m_inner_polygon_points.empty())
-            m_inner_polygon_points.push_back(m_inner_polygon_points.front());
+        m_inner_polygons = m_polygon.calculateInnerPolygon(62.0f);
+        for(QList<QPointF> & inner_polygon : m_inner_polygons)
+        {
+            if(!inner_polygon.empty())
+                inner_polygon.push_back(inner_polygon.front());
+        }
         m_polygon.push_back(m_polygon.front());
     }
     m_is_drawing = false;
