@@ -4,6 +4,8 @@ project(polygon_test)
 
 find_package(Qt6 REQUIRED COMPONENTS Widgets)
 
+set(CLIPPER2_EXAMPLES OFF)
+set(CLIPPER2_TESTS OFF)
 add_subdirectory(third_party/Clipper2/CPP)
 
 set(SRC_DIR src)

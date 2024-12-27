@@ -112,7 +112,7 @@ void Canvas::keyPressEvent(QKeyEvent * _event)
     else
     {
         m_triangulation.calculate(m_polygon);
-        m_inner_polygons = m_polygon.calculateInnerPolygon(62.0f);
+        m_inner_polygons = m_polygon.calculateInnerPolygons(62.0f);
         for(QList<QPointF> & inner_polygon : m_inner_polygons)
         {
             if(!inner_polygon.empty())
