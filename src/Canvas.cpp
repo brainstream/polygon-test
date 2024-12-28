@@ -1,8 +1,12 @@
 #include "Canvas.h"
 #include <QPaintEvent>
 #include <QPainter>
+#include <QPainterPath>
+#include <QBrush>
 
-Canvas::Canvas(QWidget *_parent) :
+#include <clipper2/clipper.h>
+
+Canvas::Canvas(QWidget * _parent) :
     QWidget(_parent),
     m_is_drawing(false)
 {
@@ -17,58 +21,72 @@ Canvas::Canvas(QWidget *_parent) :
 
     setFocusPolicy(Qt::ClickFocus);
     setMouseTracking(true);
+
+    m_polygon = Polygon
+    {
+        {0, 0},
+        {200, 400},
+        {400, 0},
+        {0, 200},
+        {400, 200},
+        {0, 0}
+    };
+
+    using Path = std::vector<Clipper2Lib::PointD>;
+    Path polygon = {
+        {0, 0},
+        {200, 400},
+        {400, 0},
+        {0, 200},
+        {400, 200},
+        {0, 0}
+    };
+    Clipper2Lib::PathsD solution = Clipper2Lib::Union({polygon}, {}, Clipper2Lib::FillRule::EvenOdd);
+    for(const auto & poly : solution) {
+        Polygon polygon;
+        for (const auto& point : poly) {
+            polygon.emplace_back(point.x, point.y);
+        }
+        m_inner_polygons.push_back(polygon);
+    }
 }
 
 void Canvas::paintEvent(QPaintEvent * _event)
 {
-    static const QPen color_regular_edge(QColorConstants::Color0);
-    static const QPen color_removed_edge(QColorConstants::Red);
-    static const QPen color_inner_polygon(QColorConstants::Blue);
+    static const QPen pen_edge(QColorConstants::Color0);
+    static const QPen pen_triangulation(QColorConstants::Red);
+    static const QBrush brush_inner_polygon(QColor(53, 143, 59, 125));
 
     QWidget::paintEvent(_event);
     QPainter painter(this);
     if(m_polygon.empty())
         return;
-    painter.setPen(color_regular_edge);
+    painter.setPen(pen_edge);
     for(int i = 1; i < m_polygon.size(); ++i)
         painter.drawLine(m_polygon[i - 1], m_polygon[i]);
     if(m_is_drawing)
     {
         painter.drawLine(m_polygon.last(), cursor().pos());
     }
-    else if(m_triangulation.getVertexCount() >= 3)
+    else if(m_triangulation.size() >= 3)
     {
-        for(size_t i = 0; i < m_triangulation.getVertexCount(); i += 3)
+        painter.setPen(pen_triangulation);
+        for(size_t i = 0; i < m_triangulation.size(); i += 3)
         {
-            uint32_t v1 = m_triangulation.getVertices()[i];
-            uint32_t v2 = m_triangulation.getVertices()[i + 1];
-            uint32_t v3 = m_triangulation.getVertices()[i + 2];
-
-            if(m_triangulation.isInternalEdge(v1, v2))
-                painter.setPen(color_removed_edge);
-            else
-                painter.setPen(color_regular_edge);
+            uint32_t v1 = m_triangulation[i];
+            uint32_t v2 = m_triangulation[i + 1];
+            uint32_t v3 = m_triangulation[i + 2];
             painter.drawLine(m_polygon[v1] , m_polygon[v2]);
-
-            if(m_triangulation.isInternalEdge(v2, v3))
-                painter.setPen(color_removed_edge);
-            else
-                painter.setPen(color_regular_edge);
             painter.drawLine(m_polygon[v2] , m_polygon[v3]);
-
-            if(m_triangulation.isInternalEdge(v3, v1))
-                painter.setPen(color_removed_edge);
-            else
-                painter.setPen(color_regular_edge);
             painter.drawLine(m_polygon[v3] , m_polygon[v1]);
         }
     }
 
-    painter.setPen(color_inner_polygon);
-    for(const QList<QPointF> & inner_polygon : m_inner_polygons)
+    for(const Polygon & inner_polygon : m_inner_polygons)
     {
-        for(int i = 1; i < inner_polygon.size(); ++i)
-            painter.drawLine(inner_polygon[i - 1], inner_polygon[i]);
+        QPainterPath path;
+        path.addPolygon(inner_polygon);
+        painter.fillPath(path, brush_inner_polygon);
     }
 }
 
@@ -98,7 +116,6 @@ void Canvas::mouseMoveEvent(QMouseEvent *)
 
 void Canvas::keyPressEvent(QKeyEvent * _event)
 {
-
     if(_event->key() != Qt::Key_Return && _event->key() != Qt::Key_Enter)
     {
         return;
@@ -111,9 +128,9 @@ void Canvas::keyPressEvent(QKeyEvent * _event)
     }
     else
     {
-        m_triangulation.calculate(m_polygon);
-        m_inner_polygons = m_polygon.calculateInnerPolygons(62.0f);
-        for(QList<QPointF> & inner_polygon : m_inner_polygons)
+        m_triangulation = triangulate(m_polygon);
+        m_inner_polygons = calculateInnerPolygons(m_polygon, 62.0f);
+        for(Polygon & inner_polygon : m_inner_polygons)
         {
             if(!inner_polygon.empty())
                 inner_polygon.push_back(inner_polygon.front());

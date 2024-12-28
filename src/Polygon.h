@@ -1,11 +1,12 @@
 #pragma once
 
-#include <QObject>
 #include <QList>
 #include <QPointF>
 
-class Polygon : public QList<QPointF>
-{
-public:
-    QList<QList<QPointF>> calculateInnerPolygons(float _offset) const;
-};
+using Polygon = QList<QPointF>;
+using PolygonList = QList<QList<QPointF>>;
+using Triangulation = std::vector<uint32_t>;
+
+PolygonList removePolygonSelfIntersections(const Polygon & _polygon);
+PolygonList calculateInnerPolygons(const Polygon & _polygon, float _offset);
+Triangulation triangulate(const Polygon & _polygon);

@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Polygon.h"
-#include "Triangulation.h"
 #include <QWidget>
 
 class Canvas : public QWidget
@@ -19,6 +18,6 @@ protected:
 private:
     Polygon m_polygon;
     Triangulation m_triangulation;
-    QList<QList<QPointF>> m_inner_polygons;
+    PolygonList m_inner_polygons;
     bool m_is_drawing;
 };

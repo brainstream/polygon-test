@@ -30,8 +30,6 @@ set(SRC
     ${SRC_DIR}/MainWindow.cpp
     ${SRC_DIR}/Polygon.cpp
     ${SRC_DIR}/Polygon.h
-    ${SRC_DIR}/Triangulation.cpp
-    ${SRC_DIR}/Triangulation.h
 )
 
 add_executable(${PROJECT_NAME} ${SRC})
