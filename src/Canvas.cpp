@@ -23,18 +23,28 @@ Canvas::Canvas(QWidget * _parent) :
 
 void Canvas::paintEvent(QPaintEvent * _event)
 {
-    static const QPen pen_drawing(QColorConstants::Color0);
-    static const QPen pen_triangulation(QColorConstants::Red);
+    static const QBrush brash_background(QColorConstants::DarkGray, Qt::BrushStyle::Dense7Pattern);
 
-    static const QPen pen_inner_polygon(QColor(53, 143, 59), 2);
-    static const QBrush brush_inner_polygon(QColor(53, 143, 59, 125));
+    static const QPen pen_drawing(QColorConstants::Color0);
+    static const QPen pen_triangulation(QColor(224, 79, 43));
+
+    static const QPen pen_inner_polygon(QColor(53, 143, 59, 125));
+    static const QBrush brush_inner_polygon(QColor(53, 143, 59, 100));
 
     static const QBrush brush_polygon(QColor(99, 96, 96, 125));
-    static const QPen pen_polygon(QColor(99, 96, 96), 2);
+    static const QPen pen_polygon(QColor(99, 96, 96), 3.0);
 
 
     QWidget::paintEvent(_event);
     QPainter painter(this);
+    painter.setRenderHint(QPainter::Antialiasing);
+
+    {
+        QPainterPath path;
+        path.addRect(rect());
+        painter.fillPath(path, brash_background);
+    }
+
     if(m_drawing.empty())
         return;
     painter.setPen(pen_drawing);
@@ -133,12 +143,15 @@ void Canvas::keyPressEvent(QKeyEvent * _event)
         for(const Polygon & poligon : m_polygons)
         {
             m_triangulations.push_back(triangulate(poligon));
+            for(const Polygon & inner_polygon : calculateInnerPolygons(poligon, 20.0f))
+                m_inner_polygons.push_back(inner_polygon);
         }
-        m_inner_polygons = calculateInnerPolygons(m_drawing, 40.0f);
         for(Polygon & inner_polygon : m_inner_polygons)
         {
             if(!inner_polygon.empty())
+            {
                 inner_polygon.push_back(inner_polygon.front());
+            }
         }
         m_drawing.push_back(m_drawing.front());
     }
