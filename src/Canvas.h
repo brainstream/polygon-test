@@ -16,8 +16,12 @@ protected:
     void keyPressEvent(QKeyEvent * _event);
 
 private:
-    Polygon m_polygon;
-    Triangulation m_triangulation;
+    void clear();
+
+private:
+    Polygon m_drawing;
+    PolygonList m_polygons;
+    QList<Triangulation> m_triangulations;
     PolygonList m_inner_polygons;
     bool m_is_drawing;
 };

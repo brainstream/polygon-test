@@ -53,7 +53,7 @@ PolygonList removePolygonSelfIntersections(const Polygon & _polygon)
 {
     Clipper2Lib::PathD subject;
     mapPolygonToPath(_polygon, subject);
-    Clipper2Lib::PathsD solution = Clipper2Lib::Union(
+    Clipper2Lib::PathsD solution = Clipper2Lib::Difference(
         {subject},
         {},
         Clipper2Lib::FillRule::EvenOdd);
@@ -71,7 +71,7 @@ PolygonList calculateInnerPolygons(const Polygon & _polygon, float _offset)
     solution = Clipper2Lib::InflatePaths(
         polyline,
         -_offset,
-        Clipper2Lib::JoinType::Bevel,
+        Clipper2Lib::JoinType::Square,
         Clipper2Lib::EndType::Polygon);
     PolygonList result;
     mapPathsToPolygonList(solution, result);
