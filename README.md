@@ -12,7 +12,7 @@
 - Gray areas are polygons
 - Green areas are offset internal polygons
 
-## Algorithms
+## Libraries
 
 - [earcut.hpp](https://github.com/mapbox/earcut.hpp) is used for triangulation.
 - [Clipper2](https://github.com/AngusJohnson/Clipper2) is used to remove self-intersections and offsets.
