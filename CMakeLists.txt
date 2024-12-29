@@ -50,7 +50,7 @@ target_link_libraries(
 
 target_include_directories(
     ${PROJECT_NAME}
-    PRIVATE third_party/mapbox
+    PRIVATE third_party/earcut.hpp/include
     PRIVATE third_party/Clipper2/CPP/Clipper2Lib/include
     PRIVATE ${CMAKE_BINARY_DIR}
 )
