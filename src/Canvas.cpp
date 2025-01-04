@@ -10,8 +10,9 @@
 #include <QPainterPath>
 #include <QBrush>
 
-Canvas::Canvas(QWidget * _parent) :
+Canvas::Canvas(const Preferences & _preferences, QWidget * _parent) :
     QWidget(_parent),
+    mr_preferences(_preferences),
     m_is_drawing(false)
 {
     QPalette pal = QPalette();
@@ -25,6 +26,8 @@ Canvas::Canvas(QWidget * _parent) :
 
     setFocusPolicy(Qt::ClickFocus);
     setMouseTracking(true);
+
+    connect(&mr_preferences, SIGNAL(changed()), this, SLOT(update()));
 }
 
 void Canvas::paintEvent(QPaintEvent * _event)
@@ -51,8 +54,6 @@ void Canvas::paintEvent(QPaintEvent * _event)
         painter.fillPath(path, brash_background);
     }
 
-    if(m_drawing.empty())
-        return;
     painter.setPen(pen_drawing);
 
     if(m_is_drawing)
@@ -73,30 +74,35 @@ void Canvas::paintEvent(QPaintEvent * _event)
             painter.fillPath(path, brush_polygon);
             painter.strokePath(path, pen_polygon);
         }
-        painter.setPen(pen_triangulation);
-        for(qsizetype i = 0; i < m_triangulations.size(); ++i)
+        if(mr_preferences.showTriangulation())
         {
-            const Triangulation & triangulation = m_triangulations[i];
-            const Polygon & polygon = m_polygons[i];
-            for(size_t i = 0; i < triangulation.size(); i += 3)
+            painter.setPen(pen_triangulation);
+            for(qsizetype i = 0; i < m_triangulations.size(); ++i)
             {
-                uint32_t v1 = triangulation[i];
-                uint32_t v2 = triangulation[i + 1];
-                uint32_t v3 = triangulation[i + 2];
-                painter.drawLine(polygon[v1], polygon[v2]);
-                painter.drawLine(polygon[v2], polygon[v3]);
-                painter.drawLine(polygon[v3], polygon[v1]);
+                const Triangulation & triangulation = m_triangulations[i];
+                const Polygon & polygon = m_polygons[i];
+                for(size_t i = 0; i < triangulation.size(); i += 3)
+                {
+                    uint32_t v1 = triangulation[i];
+                    uint32_t v2 = triangulation[i + 1];
+                    uint32_t v3 = triangulation[i + 2];
+                    painter.drawLine(polygon[v1], polygon[v2]);
+                    painter.drawLine(polygon[v2], polygon[v3]);
+                    painter.drawLine(polygon[v3], polygon[v1]);
+                }
             }
         }
     }
 
-
-    for(const Polygon & inner_polygon : m_inner_polygons)
+    if(mr_preferences.showOffsetPolygons())
     {
-        QPainterPath path;
-        path.addPolygon(inner_polygon);
-        painter.fillPath(path, brush_inner_polygon);
-        painter.strokePath(path, pen_inner_polygon);
+        for(const Polygon & inner_polygon : m_inner_polygons)
+        {
+            QPainterPath path;
+            path.addPolygon(inner_polygon);
+            painter.fillPath(path, brush_inner_polygon);
+            painter.strokePath(path, pen_inner_polygon);
+        }
     }
 }
 

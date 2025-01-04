@@ -10,6 +10,9 @@
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
+    a.setOrganizationName("brainstream");
+    a.setApplicationName("polygon_test");
+    a.setApplicationDisplayName("Polygon Tests");
     MainWindow w;
     w.show();
     return a.exec();

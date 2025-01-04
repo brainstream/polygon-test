@@ -6,14 +6,15 @@
 
 #pragma once
 
-#include "Polygon.h"
 #include <QWidget>
+#include "Polygon.h"
+#include "Preferences.h"
 
 class Canvas : public QWidget
 {
     Q_OBJECT
 public:
-    explicit Canvas(QWidget * _parent = nullptr);
+    explicit Canvas(const Preferences & _preferences, QWidget * _parent = nullptr);
 
 protected:
     void paintEvent(QPaintEvent * _event);
@@ -25,6 +26,7 @@ private:
     void clear();
 
 private:
+    const Preferences & mr_preferences;
     Polygon m_drawing;
     PolygonList m_polygons;
     QList<Triangulation> m_triangulations;

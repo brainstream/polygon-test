@@ -6,8 +6,9 @@
 
 #pragma once
 
-#include <QMainWindow>
+#include "PreferencesWidget.h"
 #include "ui_MainWindow.h"
+#include <QMainWindow>
 
 class MainWindow : public QMainWindow, private Ui_MainWindow
 {
@@ -15,4 +16,15 @@ class MainWindow : public QMainWindow, private Ui_MainWindow
 
 public:
     MainWindow(QWidget * _parent = nullptr);
+
+protected:
+    void closeEvent(QCloseEvent * _event) override;
+
+private:
+    void readSettings();
+    void writeSettigns();
+
+private:
+    Preferences m_preferences;
+    PreferencesWidget * mp_preferences_widget;
 };

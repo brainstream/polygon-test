@@ -19,10 +19,13 @@ set(SRC_DIR src)
 set(SRC_MOC
     ${SRC_DIR}/Canvas.h
     ${SRC_DIR}/MainWindow.h
+    ${SRC_DIR}/PreferencesWidget.h
+    ${SRC_DIR}/Preferences.h
 )
 
 set(SRC_UI
     ${SRC_DIR}/MainWindow.ui
+    ${SRC_DIR}/PreferencesWidget.ui
 )
 
 qt6_wrap_cpp(SRC_MOC ${SRC_MOC})
@@ -36,6 +39,8 @@ set(SRC
     ${SRC_DIR}/MainWindow.cpp
     ${SRC_DIR}/Polygon.cpp
     ${SRC_DIR}/Polygon.h
+    ${SRC_DIR}/PreferencesWidget.cpp
+    ${SRC_DIR}/Preferences.cpp
 )
 
 add_executable(${PROJECT_NAME} ${SRC})
