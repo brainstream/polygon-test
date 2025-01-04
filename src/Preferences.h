@@ -19,7 +19,7 @@ public:
         m_show_polygons(true),
         m_show_triangulation(true),
         m_show_offset_polygons(true),
-        m_show_aabb(true),
+        m_show_aabb(false),
         m_show_sdf(false)
     {
     }
