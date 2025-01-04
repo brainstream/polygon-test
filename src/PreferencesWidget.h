@@ -21,10 +21,6 @@ class PreferencesWidget : public QWidget, private Ui::PreferencesWidget
 public:
     explicit PreferencesWidget(Preferences & _preferences, QWidget * _parent = nullptr);
 
-private slots:
-    void onShowTriangulationChanged();
-    void onShowOffsetPolygonChanged();
-
 private:
     Preferences & mr_preferences;
 };

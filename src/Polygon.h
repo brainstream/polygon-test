@@ -6,13 +6,19 @@
 
 #pragma once
 
+#include "AABB.h"
+#include <cstdint>
+#include <tmd/TriangleMeshDistance.h>
 #include <QList>
-#include <QPointF>
 
 using Polygon = QList<QPointF>;
 using PolygonList = QList<QList<QPointF>>;
 using Triangulation = std::vector<uint32_t>;
+using SDF = tmd::TriangleMeshDistance;
 
 PolygonList removePolygonSelfIntersections(const Polygon & _polygon);
 PolygonList calculateInnerPolygons(const Polygon & _polygon, float _offset);
 Triangulation triangulate(const Polygon & _polygon);
+SDF calculateSDF(const Polygon & _polygon, const Triangulation & _triangulation);
+AABB calculateAABB(const Polygon & _polygon);
+AABB calculateAABB(const PolygonList & _polygons);

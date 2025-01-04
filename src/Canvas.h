@@ -13,17 +13,27 @@
 class Canvas : public QWidget
 {
     Q_OBJECT
+
 public:
     explicit Canvas(const Preferences & _preferences, QWidget * _parent = nullptr);
+    ~Canvas() override;
 
 protected:
-    void paintEvent(QPaintEvent * _event);
-    void mouseReleaseEvent(QMouseEvent * _event);
-    void mouseMoveEvent(QMouseEvent * _event);
-    void keyPressEvent(QKeyEvent * _event);
+    void paintEvent(QPaintEvent * _event) override;
+    void mouseReleaseEvent(QMouseEvent * _event) override;
+    void mouseMoveEvent(QMouseEvent * _event) override;
+    void keyPressEvent(QKeyEvent * _event) override;
 
 private:
+    void setWaitingState(bool _waiting);
+    void drawSdfPixmap(const AABB & _aabb);
     void clear();
+
+signals:
+    void sdfPixmapReady(QPixmap * _pixmap, QPrivateSignal);
+
+private slots:
+    void onSdfPixmapReady(QPixmap * _pixmap);
 
 private:
     const Preferences & mr_preferences;
@@ -31,5 +41,8 @@ private:
     PolygonList m_polygons;
     QList<Triangulation> m_triangulations;
     PolygonList m_inner_polygons;
+    QList<SDF> m_sdfs;
+    QPixmap * mp_sdfs_pixmap;
+    bool m_is_updating;
     bool m_is_drawing;
 };

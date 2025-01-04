@@ -11,18 +11,14 @@ PreferencesWidget::PreferencesWidget(Preferences & _preferences, QWidget * _pare
     mr_preferences(_preferences)
 {
     setupUi(this);
+    mp_checkbox_show_polygons->setChecked(_preferences.showPolygons());
     mp_checkbox_show_triangulation->setChecked(_preferences.showTriangulation());
     mp_checkbox_show_offset_polygon->setChecked(_preferences.showOffsetPolygons());
-    connect(mp_checkbox_show_triangulation, SIGNAL(toggled(bool)), this, SLOT(onShowTriangulationChanged()));
-    connect(mp_checkbox_show_offset_polygon, SIGNAL(toggled(bool)), this, SLOT(onShowOffsetPolygonChanged()));
-}
-
-void PreferencesWidget::onShowTriangulationChanged()
-{
-    mr_preferences.setShowTriangulation(mp_checkbox_show_triangulation->isChecked());
-}
-
-void PreferencesWidget::onShowOffsetPolygonChanged()
-{
-    mr_preferences.setShowOffsetPolygons(mp_checkbox_show_offset_polygon->isChecked());
+    mp_checkbox_show_aabb->setChecked(_preferences.showAABB());
+    mp_checkbox_show_sdf->setChecked(_preferences.showSDF());
+    connect(mp_checkbox_show_polygons, &QCheckBox::toggled, &mr_preferences, &Preferences::setShowPolygons);
+    connect(mp_checkbox_show_triangulation, &QCheckBox::toggled, &mr_preferences, &Preferences::setShowTriangulation);
+    connect(mp_checkbox_show_offset_polygon, &QCheckBox::toggled, &mr_preferences, &Preferences::setShowOffsetPolygons);
+    connect(mp_checkbox_show_aabb, &QCheckBox::toggled, &mr_preferences, &Preferences::setShowAABB);
+    connect(mp_checkbox_show_sdf, &QCheckBox::toggled, &mr_preferences, &Preferences::setShowSDF);
 }

@@ -4,3 +4,6 @@
 [submodule "third_party/earcut.hpp"]
 	path = third_party/earcut.hpp
 	url = https://github.com/mapbox/earcut.hpp.git
+[submodule "third_party/TriangleMeshDistance"]
+	path = third_party/TriangleMeshDistance
+	url = https://github.com/InteractiveComputerGraphics/TriangleMeshDistance.git

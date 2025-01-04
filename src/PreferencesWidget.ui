@@ -11,14 +11,14 @@
    </rect>
   </property>
   <layout class="QFormLayout" name="formLayout">
-   <item row="0" column="0">
+   <item row="1" column="0">
     <widget class="QCheckBox" name="mp_checkbox_show_triangulation">
      <property name="text">
       <string>Show triangulation</string>
      </property>
     </widget>
    </item>
-   <item row="2" column="0">
+   <item row="5" column="0">
     <spacer name="mp_spacer">
      <property name="orientation">
       <enum>Qt::Orientation::Vertical</enum>
@@ -31,15 +31,43 @@
      </property>
     </spacer>
    </item>
-   <item row="1" column="0">
+   <item row="2" column="0">
     <widget class="QCheckBox" name="mp_checkbox_show_offset_polygon">
      <property name="text">
       <string>Show offset polygons</string>
      </property>
     </widget>
    </item>
+   <item row="3" column="0">
+    <widget class="QCheckBox" name="mp_checkbox_show_aabb">
+     <property name="text">
+      <string>Show AABB</string>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="0">
+    <widget class="QCheckBox" name="mp_checkbox_show_polygons">
+     <property name="text">
+      <string>Show polygons</string>
+     </property>
+    </widget>
+   </item>
+   <item row="4" column="0">
+    <widget class="QCheckBox" name="mp_checkbox_show_sdf">
+     <property name="text">
+      <string>Show Signed Distance Field</string>
+     </property>
+    </widget>
+   </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>mp_checkbox_show_polygons</tabstop>
+  <tabstop>mp_checkbox_show_triangulation</tabstop>
+  <tabstop>mp_checkbox_show_offset_polygon</tabstop>
+  <tabstop>mp_checkbox_show_aabb</tabstop>
+  <tabstop>mp_checkbox_show_sdf</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>

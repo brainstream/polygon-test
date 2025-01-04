@@ -41,6 +41,7 @@ set(SRC
     ${SRC_DIR}/Polygon.h
     ${SRC_DIR}/PreferencesWidget.cpp
     ${SRC_DIR}/Preferences.cpp
+    ${SRC_DIR}/AABB.h
 )
 
 add_executable(${PROJECT_NAME} ${SRC})
@@ -57,5 +58,6 @@ target_include_directories(
     ${PROJECT_NAME}
     PRIVATE third_party/earcut.hpp/include
     PRIVATE third_party/Clipper2/CPP/Clipper2Lib/include
+    PRIVATE third_party/TriangleMeshDistance/TriangleMeshDistance/include
     PRIVATE ${CMAKE_BINARY_DIR}
 )

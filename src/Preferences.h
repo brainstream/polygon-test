@@ -16,13 +16,31 @@ class Preferences : public QObject
 public:
     explicit Preferences(QObject * _parent = nullptr) :
         QObject(_parent),
+        m_show_polygons(true),
         m_show_triangulation(true),
-        m_show_offset_polygons(true)
+        m_show_offset_polygons(true),
+        m_show_aabb(true),
+        m_show_sdf(false)
     {
     }
 
     void save(QSettings & _settings) const;
     void load(QSettings & _settings);
+
+public slots:
+    bool showPolygons() const
+    {
+        return m_show_polygons;
+    }
+
+    void setShowPolygons(bool _show)
+    {
+        if(m_show_polygons != _show)
+        {
+            m_show_polygons = _show;
+            emit changed();
+        }
+    }
 
     bool showTriangulation() const
     {
@@ -52,10 +70,41 @@ public:
         }
     }
 
+    bool showAABB() const
+    {
+        return m_show_aabb;
+    }
+
+    void setShowAABB(bool _show)
+    {
+        if(m_show_aabb != _show)
+        {
+            m_show_aabb = _show;
+            emit changed();
+        }
+    }
+
+    bool showSDF() const
+    {
+        return m_show_sdf;
+    }
+
+    void setShowSDF(bool _show)
+    {
+        if(m_show_sdf != _show)
+        {
+            m_show_sdf = _show;
+            emit changed();
+        }
+    }
+
 signals:
     void changed();
 
 private:
+    bool m_show_polygons;
     bool m_show_triangulation;
     bool m_show_offset_polygons;
+    bool m_show_aabb;
+    bool m_show_sdf;
 };

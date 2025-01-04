@@ -88,3 +88,71 @@ Triangulation triangulate(const Polygon & _polygon)
 {
     return mapbox::earcut(PolygonList{ _polygon });
 }
+
+SDF calculateSDF(const Polygon & _polygon, const Triangulation & _triangulation)
+{
+    if(_polygon.size() < 3 || _triangulation.size() < 3)
+    {
+        return tmd::TriangleMeshDistance();
+    }
+
+    std::vector<std::array<double, 3>> vertices;
+    vertices.reserve(_polygon.size());
+    std::vector<std::array<int, 3>> triangles;
+    triangles.reserve(_triangulation.size() / 3);
+
+    for(const QPointF & point : _polygon)
+    {
+        vertices.push_back({point.x(), point.y(), 0.0});
+    }
+    for(qsizetype i = 0; i < _triangulation.size(); i += 3)
+    {
+        triangles.push_back(
+            {
+                static_cast<int>(_triangulation[i]),
+                static_cast<int>(_triangulation[i + 1]),
+                static_cast<int>(_triangulation[i + 2])
+            });
+    }
+
+    return tmd::TriangleMeshDistance(vertices, triangles);
+}
+
+AABB calculateAABB(const PolygonList & _polygons)
+{
+    if(_polygons.empty())
+        return {};
+    AABB aabb = calculateAABB(_polygons[0]);
+    for(qsizetype i = 1; i < _polygons.size(); ++i)
+    {
+        AABB next_aabb = calculateAABB(_polygons[i]);
+        if(next_aabb.min.x() < aabb.min.x())
+            aabb.min.setX(next_aabb.min.x());
+        if(next_aabb.min.y() < aabb.min.y())
+            aabb.min.setY(next_aabb.min.y());
+        if(next_aabb.max.x() > aabb.max.x())
+            aabb.max.setX(next_aabb.max.x());
+        if(next_aabb.max.y() > aabb.max.y())
+            aabb.max.setY(next_aabb.max.y());
+    }
+    return aabb;
+}
+
+AABB calculateAABB(const Polygon & _polygon)
+{
+    if(_polygon.empty())
+        return {};
+    AABB aabb { .min = _polygon[0], .max = _polygon[0] };
+    for(qsizetype i = 1; i < _polygon.size(); ++i)
+    {
+        if(_polygon[i].x() < aabb.min.x())
+            aabb.min.setX(_polygon[i].x());
+        else if(_polygon[i].x() > aabb.max.x())
+            aabb.max.setX(_polygon[i].x());
+        if(_polygon[i].y() < aabb.min.y())
+            aabb.min.setY(_polygon[i].y());
+        else if(_polygon[i].y() > aabb.max.y())
+            aabb.max.setY(_polygon[i].y());
+    }
+    return aabb;
+}
