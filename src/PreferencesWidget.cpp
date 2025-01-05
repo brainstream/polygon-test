@@ -15,10 +15,10 @@ PreferencesWidget::PreferencesWidget(Preferences & _preferences, QWidget * _pare
     mp_checkbox_show_triangulation->setChecked(_preferences.showTriangulation());
     mp_checkbox_show_offset_polygon->setChecked(_preferences.showOffsetPolygons());
     mp_checkbox_show_aabb->setChecked(_preferences.showAABB());
-    mp_checkbox_show_sdf->setChecked(_preferences.showSDF());
+    mp_checkbox_show_distance_map->setChecked(_preferences.showDistanceMap());
     connect(mp_checkbox_show_polygons, &QCheckBox::toggled, &mr_preferences, &Preferences::setShowPolygons);
     connect(mp_checkbox_show_triangulation, &QCheckBox::toggled, &mr_preferences, &Preferences::setShowTriangulation);
     connect(mp_checkbox_show_offset_polygon, &QCheckBox::toggled, &mr_preferences, &Preferences::setShowOffsetPolygons);
     connect(mp_checkbox_show_aabb, &QCheckBox::toggled, &mr_preferences, &Preferences::setShowAABB);
-    connect(mp_checkbox_show_sdf, &QCheckBox::toggled, &mr_preferences, &Preferences::setShowSDF);
+    connect(mp_checkbox_show_distance_map, &QCheckBox::toggled, &mr_preferences, &Preferences::setShowDistanceMap);
 }

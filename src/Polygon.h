@@ -8,17 +8,32 @@
 
 #include "AABB.h"
 #include <cstdint>
-#include <Discregrid/geometry/TriangleMeshDistance.h>
 #include <QList>
 
 using Polygon = QList<QPointF>;
 using PolygonList = QList<QList<QPointF>>;
 using Triangulation = std::vector<uint32_t>;
-using SDF = Discregrid::TriangleMeshDistance;
 
 PolygonList removePolygonSelfIntersections(const Polygon & _polygon);
 PolygonList calculateInnerPolygons(const Polygon & _polygon, float _offset);
 Triangulation triangulate(const Polygon & _polygon);
-SDF calculateSDF(const Polygon & _polygon, const Triangulation & _triangulation);
 AABB calculateAABB(const Polygon & _polygon);
 AABB calculateAABB(const PolygonList & _polygons);
+
+class PolygonDistance final
+{
+private:
+    struct Edge;
+
+public:
+    explicit PolygonDistance(const PolygonList & _polygons);
+    ~PolygonDistance();
+    qreal calculateUnsigned(const QPointF & _point) const;
+
+private:
+    static Edge * makeEdge(const QPointF & _a, const QPointF & _b);
+    static qreal calculateSquaredLength(const QPointF & _vec_a, const QPointF & _vec_b);
+
+private:
+    QList<Edge *> m_edges;
+};

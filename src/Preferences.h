@@ -20,7 +20,7 @@ public:
         m_show_triangulation(true),
         m_show_offset_polygons(true),
         m_show_aabb(false),
-        m_show_sdf(false)
+        m_show_distance_map(false)
     {
     }
 
@@ -84,16 +84,16 @@ public slots:
         }
     }
 
-    bool showSDF() const
+    bool showDistanceMap() const
     {
-        return m_show_sdf;
+        return m_show_distance_map;
     }
 
-    void setShowSDF(bool _show)
+    void setShowDistanceMap(bool _show)
     {
-        if(m_show_sdf != _show)
+        if(m_show_distance_map != _show)
         {
-            m_show_sdf = _show;
+            m_show_distance_map = _show;
             emit changed();
         }
     }
@@ -106,5 +106,5 @@ private:
     bool m_show_triangulation;
     bool m_show_offset_polygons;
     bool m_show_aabb;
-    bool m_show_sdf;
+    bool m_show_distance_map;
 };

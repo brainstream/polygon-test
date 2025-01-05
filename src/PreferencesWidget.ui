@@ -53,9 +53,9 @@
     </widget>
    </item>
    <item row="4" column="0">
-    <widget class="QCheckBox" name="mp_checkbox_show_sdf">
+    <widget class="QCheckBox" name="mp_checkbox_show_distance_map">
      <property name="text">
-      <string>Show Signed Distance Field</string>
+      <string>Show distance map</string>
      </property>
     </widget>
    </item>
@@ -66,7 +66,7 @@
   <tabstop>mp_checkbox_show_triangulation</tabstop>
   <tabstop>mp_checkbox_show_offset_polygon</tabstop>
   <tabstop>mp_checkbox_show_aabb</tabstop>
-  <tabstop>mp_checkbox_show_sdf</tabstop>
+  <tabstop>mp_checkbox_show_distance_map</tabstop>
  </tabstops>
  <resources/>
  <connections/>

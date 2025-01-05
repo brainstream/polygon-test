@@ -170,7 +170,7 @@ void Canvas::paintEvent(QPaintEvent * _event)
                 painter.strokePath(path, pen_inner_polygon);
             }
         }
-        if(mr_preferences.showSDF() && !m_sdfs.empty())
+        if(mr_preferences.showDistanceMap())
         {
             if(mp_sdfs_pixmap)
             {
@@ -203,18 +203,12 @@ void Canvas::drawSdfPixmap(const AABB & _aabb)
         const double max_distance = std::sqrt(w * w + h * h) / 2;
         QPixmap * pixmap = new QPixmap(w, h);
         QPainter painter(pixmap);
+        PolygonDistance pd(m_polygons);
         for(double y = _aabb.min.y(); y < _aabb.max.y(); y += 1.0)
         {
             for(double x = _aabb.min.x(); x < _aabb.max.x(); x += 1.0)
             {
-                double dist = std::numeric_limits<double>::max();
-                for(const auto & sdf : m_sdfs)
-                {
-                    Discregrid::Result d = sdf.signed_distance({x, y, 0.0});
-                    double dst = std::abs(d.distance);
-                    if(dst < dist)
-                        dist = dst;
-                }
+                double dist = pd.calculateUnsigned({x, y});
                 QColor qc = getGradientColor(dist / max_distance);
                 qc.setAlpha(190);
                 painter.setPen(qc);
@@ -257,7 +251,6 @@ void Canvas::clear()
     m_inner_polygons.clear();
     m_polygons.clear();
     m_triangulations.clear();
-    m_sdfs.clear();
     delete mp_sdfs_pixmap;
     mp_sdfs_pixmap = nullptr;
 }
@@ -289,7 +282,6 @@ void Canvas::keyPressEvent(QKeyEvent * _event)
         {
             Triangulation triangulation = triangulate(poligon);
             m_triangulations.push_back(triangulation);
-            m_sdfs.push_back(calculateSDF(poligon, triangulation));
             for(const Polygon & inner_polygon : calculateInnerPolygons(poligon, 20.0f))
                 m_inner_polygons.push_back(inner_polygon);
         }

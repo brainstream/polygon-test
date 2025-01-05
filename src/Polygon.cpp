@@ -89,35 +89,6 @@ Triangulation triangulate(const Polygon & _polygon)
     return mapbox::earcut(PolygonList{ _polygon });
 }
 
-SDF calculateSDF(const Polygon & _polygon, const Triangulation & _triangulation)
-{
-    if(_polygon.size() < 3 || _triangulation.size() < 3)
-    {
-        return Discregrid::TriangleMeshDistance();
-    }
-
-    std::vector<std::array<double, 3>> vertices;
-    vertices.reserve(_polygon.size());
-    std::vector<std::array<int, 3>> triangles;
-    triangles.reserve(_triangulation.size() / 3);
-
-    for(const QPointF & point : _polygon)
-    {
-        vertices.push_back({point.x(), point.y(), 0.0});
-    }
-    for(qsizetype i = 0; i < _triangulation.size(); i += 3)
-    {
-        triangles.push_back(
-            {
-                static_cast<int>(_triangulation[i]),
-                static_cast<int>(_triangulation[i + 1]),
-                static_cast<int>(_triangulation[i + 2])
-            });
-    }
-
-    return Discregrid::TriangleMeshDistance(vertices, triangles);
-}
-
 AABB calculateAABB(const PolygonList & _polygons)
 {
     if(_polygons.empty())
@@ -155,4 +126,79 @@ AABB calculateAABB(const Polygon & _polygon)
             aabb.max.setY(_polygon[i].y());
     }
     return aabb;
+}
+
+struct PolygonDistance::Edge
+{
+    QPointF a;
+    QPointF b;
+    QPointF diff;
+    qreal squared_length;
+};
+
+PolygonDistance::PolygonDistance(const PolygonList & _polygons)
+{
+    qsizetype size = 0;
+    for(const Polygon & polygon : _polygons)
+        size += polygon.size();
+    m_edges.reserve(size);
+
+    for(const Polygon & polygon : _polygons)
+    {
+        if(polygon.size() < 3) continue;
+        const QPointF * a = &polygon.at(0);
+        for(qsizetype i = 1; i < polygon.size(); ++i)
+        {
+            const QPointF * b = &polygon.at(i);
+            m_edges.push_back(makeEdge(*a, *b));
+            a = b;
+        }
+        m_edges.push_back(makeEdge(polygon.at(0), *a));
+    }
+}
+
+PolygonDistance::~PolygonDistance()
+{
+    for(Edge * edge : m_edges)
+        delete edge;
+}
+
+PolygonDistance::Edge * PolygonDistance::makeEdge(const QPointF & _a, const QPointF & _b)
+{
+    QPointF::dotProduct(_a, _b);
+    return new Edge
+    {
+        .a = _a,
+        .b = _b,
+        .diff = _b - _a,
+        .squared_length = calculateSquaredLength(_a, _b)
+    };
+}
+
+qreal PolygonDistance::calculateSquaredLength(const QPointF & _vec_a, const QPointF & _vec_b)
+{
+    const QPointF diff = _vec_a - _vec_b;
+    return QPointF::dotProduct(diff, diff);
+}
+
+qreal PolygonDistance::calculateUnsigned(const QPointF & _point) const
+{
+    qreal result = std::numeric_limits<qreal>::max();
+    for(const Edge * edge : m_edges)
+    {
+        const QPointF ap = _point - edge->a;
+        const qreal dot = QPointF::dotProduct(ap, edge->diff);
+        qreal t = dot / edge->squared_length;
+
+        if(t <= 0.0) t = 0.0;
+        else if(t > 1.0) t = 1.0;
+
+        const QPointF closest_point = edge->a + t * edge->diff;
+
+        const qreal sq_dist = calculateSquaredLength(_point, closest_point);
+        const qreal dist = std::sqrt(sq_dist);
+        if(dist < result)
+            result = dist;
+    }
+    return result;
 }

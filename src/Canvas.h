@@ -41,7 +41,6 @@ private:
     PolygonList m_polygons;
     QList<Triangulation> m_triangulations;
     PolygonList m_inner_polygons;
-    QList<SDF> m_sdfs;
     QPixmap * mp_sdfs_pixmap;
     bool m_is_updating;
     bool m_is_drawing;
