@@ -93,7 +93,7 @@ SDF calculateSDF(const Polygon & _polygon, const Triangulation & _triangulation)
 {
     if(_polygon.size() < 3 || _triangulation.size() < 3)
     {
-        return tmd::TriangleMeshDistance();
+        return Discregrid::TriangleMeshDistance();
     }
 
     std::vector<std::array<double, 3>> vertices;
@@ -115,7 +115,7 @@ SDF calculateSDF(const Polygon & _polygon, const Triangulation & _triangulation)
             });
     }
 
-    return tmd::TriangleMeshDistance(vertices, triangles);
+    return Discregrid::TriangleMeshDistance(vertices, triangles);
 }
 
 AABB calculateAABB(const PolygonList & _polygons)

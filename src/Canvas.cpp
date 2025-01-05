@@ -160,7 +160,6 @@ void Canvas::paintEvent(QPaintEvent * _event)
                 }
             }
         }
-
         if(mr_preferences.showOffsetPolygons())
         {
             for(const Polygon & inner_polygon : m_inner_polygons)
@@ -171,7 +170,6 @@ void Canvas::paintEvent(QPaintEvent * _event)
                 painter.strokePath(path, pen_inner_polygon);
             }
         }
-
         if(mr_preferences.showSDF() && !m_sdfs.empty())
         {
             if(mp_sdfs_pixmap)
@@ -212,7 +210,7 @@ void Canvas::drawSdfPixmap(const AABB & _aabb)
                 double dist = std::numeric_limits<double>::max();
                 for(const auto & sdf : m_sdfs)
                 {
-                    tmd::Result d = sdf.signed_distance({x, y, 0.0});
+                    Discregrid::Result d = sdf.signed_distance({x, y, 0.0});
                     double dst = std::abs(d.distance);
                     if(dst < dist)
                         dist = dst;

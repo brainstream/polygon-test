@@ -9,10 +9,12 @@ cmake_minimum_required(VERSION 3.28)
 project(polygon_test)
 
 find_package(Qt6 REQUIRED COMPONENTS Widgets)
+find_package(Eigen3 REQUIRED)
 
 set(CLIPPER2_EXAMPLES OFF)
 set(CLIPPER2_TESTS OFF)
 add_subdirectory(third_party/Clipper2/CPP)
+add_subdirectory(third_party/Discregrid)
 
 set(SRC_DIR src)
 
@@ -51,13 +53,20 @@ target_link_libraries(
     Qt6::Core
     Qt6::Gui
     Qt6::Widgets
+    Eigen3::Eigen
     Clipper2
+    Discregrid
 )
 
 target_include_directories(
     ${PROJECT_NAME}
     PRIVATE third_party/earcut.hpp/include
     PRIVATE third_party/Clipper2/CPP/Clipper2Lib/include
-    PRIVATE third_party/TriangleMeshDistance/TriangleMeshDistance/include
+    PRIVATE third_party/Discregrid/discregrid/include
+    PRIVATE ${EIGEN3_INCLUDE_DIR}
     PRIVATE ${CMAKE_BINARY_DIR}
+)
+
+add_custom_target(misc SOURCES
+    README.md
 )

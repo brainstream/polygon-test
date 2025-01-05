@@ -8,13 +8,13 @@
 
 #include "AABB.h"
 #include <cstdint>
-#include <tmd/TriangleMeshDistance.h>
+#include <Discregrid/geometry/TriangleMeshDistance.h>
 #include <QList>
 
 using Polygon = QList<QPointF>;
 using PolygonList = QList<QList<QPointF>>;
 using Triangulation = std::vector<uint32_t>;
-using SDF = tmd::TriangleMeshDistance;
+using SDF = Discregrid::TriangleMeshDistance;
 
 PolygonList removePolygonSelfIntersections(const Polygon & _polygon);
 PolygonList calculateInnerPolygons(const Polygon & _polygon, float _offset);
