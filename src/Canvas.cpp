@@ -5,6 +5,8 @@
 // binary, for any purpose, commercial or non-commercial, and by any means.
 
 #include "Canvas.h"
+#include <libheatmap/heatmap.h>
+#include <libheatmap/colorschemes/PuBuGn.h>
 #include <QPaintEvent>
 #include <QPainter>
 #include <QPainterPath>
@@ -198,21 +200,34 @@ void Canvas::drawSdfPixmap(const AABB & _aabb)
     }
     setWaitingState(true);
     QThreadPool::globalInstance()->start([this, _aabb]() {
-        const double w = _aabb.max.x() - _aabb.min.x();
-        const double h = (_aabb.max.y() - _aabb.min.y());
-        const double max_distance = std::sqrt(w * w + h * h) / 2;
+        const uint32_t min_x = static_cast<uint32_t>(_aabb.min.x());
+        const uint32_t max_x = static_cast<uint32_t>(_aabb.max.x());
+        const uint32_t min_y = static_cast<uint32_t>(_aabb.min.y());
+        const uint32_t max_y = static_cast<uint32_t>(_aabb.max.y());
+        const uint32_t w = max_x - min_x;
+        const uint32_t h = max_y - min_y;
+        heatmap_t * hm = heatmap_new(w, h);
+        PolygonDistance pd(m_polygons);
+        for(uint32_t y = min_y; y < max_y; ++y)
+        {
+            for(uint32_t x = min_x; x < max_x; ++x)
+            {
+                double dist = pd.calculateUnsigned({static_cast<qreal>(x), static_cast<qreal>(y)});
+                heatmap_add_weighted_point(hm, x - min_x, y - min_y, dist);
+            }
+        }
+        std::vector<unsigned char> image(w * h * 4);
+        heatmap_render_to(hm, heatmap_cs_PuBuGn_soft, &image[0]);
+        heatmap_free(hm);
         QPixmap * pixmap = new QPixmap(w, h);
         QPainter painter(pixmap);
-        PolygonDistance pd(m_polygons);
-        for(double y = _aabb.min.y(); y < _aabb.max.y(); y += 1.0)
+        for(uint32_t y = 0; y < h; ++y)
         {
-            for(double x = _aabb.min.x(); x < _aabb.max.x(); x += 1.0)
+            for(uint32_t x = 0; x < w; ++x)
             {
-                double dist = pd.calculateUnsigned({x, y});
-                QColor qc = getGradientColor(dist / max_distance);
-                qc.setAlpha(190);
-                painter.setPen(qc);
-                painter.drawPoint(QPoint(x, y) - _aabb.min);
+                unsigned char * pixel = &image[(y * w + x) * 4];
+                painter.setPen(QColor(pixel[0], pixel[1], pixel[2], /*pixel[3]*/135));
+                painter.drawPoint(QPoint(x, y));
             }
         }
         emit sdfPixmapReady(pixmap, QPrivateSignal());

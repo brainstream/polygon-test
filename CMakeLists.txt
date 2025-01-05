@@ -46,8 +46,23 @@ set(SRC
 
 add_executable(${PROJECT_NAME} ${SRC})
 
+add_library(libheatmap OBJECT
+    third_party/libheatmap/libheatmap/heatmap.c
+    third_party/libheatmap/libheatmap/heatmap.h
+    third_party/libheatmap/libheatmap/colorschemes/PuBuGn.c
+    third_party/libheatmap/libheatmap/colorschemes/PuBuGn.h
+)
+set_target_properties(libheatmap
+    PROPERTIES
+    FOLDER Libraries
+)
+target_include_directories(libheatmap
+    PRIVATE third_party/libheatmap/libheatmap
+)
+
 target_link_libraries(
     ${PROJECT_NAME}
+    libheatmap
     Qt6::Core
     Qt6::Gui
     Qt6::Widgets
@@ -58,7 +73,7 @@ target_include_directories(
     ${PROJECT_NAME}
     PRIVATE third_party/earcut.hpp/include
     PRIVATE third_party/Clipper2/CPP/Clipper2Lib/include
-    PRIVATE ${EIGEN3_INCLUDE_DIR}
+    PRIVATE third_party/libheatmap
     PRIVATE ${CMAKE_BINARY_DIR}
 )
 
