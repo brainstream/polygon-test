@@ -7,6 +7,10 @@
 cmake_minimum_required(VERSION 3.28)
 
 project(polygon_test)
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+option(PT_USE_ASAN "Eanble ASAN" OFF)
 
 find_package(Qt6 REQUIRED COMPONENTS Widgets)
 
@@ -45,6 +49,18 @@ set(SRC
 )
 
 add_executable(${PROJECT_NAME} ${SRC})
+
+if(MSVC)
+    target_compile_options(${PROJECT_NAME} PRIVATE /W4 /WX)
+    if(PT_USE_ASAN)
+        target_link_options(${PROJECT_NAME} PRIVATE /fsanitize=address)
+    endif()
+else()
+    target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra -Wpedantic -Werror)
+    if(PT_USE_ASAN)
+        target_link_options(${PROJECT_NAME} PRIVATE -fsanitize=address)
+    endif()
+endif()
 
 add_library(libheatmap OBJECT
     third_party/libheatmap/libheatmap/heatmap.c

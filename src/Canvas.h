@@ -26,14 +26,14 @@ protected:
 
 private:
     void setWaitingState(bool _waiting);
-    void drawSdfPixmap(const AABB & _aabb);
+    void drawSdfImage(const AABB & _aabb);
     void clear();
 
 signals:
-    void sdfPixmapReady(QPixmap * _pixmap, QPrivateSignal);
+    void sdfImageReady(QImage * _pixmap, QPrivateSignal);
 
 private slots:
-    void onSdfPixmapReady(QPixmap * _pixmap);
+    void onSdfImageReady(QImage * _pixmap);
 
 private:
     const Preferences & mr_preferences;
@@ -41,7 +41,7 @@ private:
     PolygonList m_polygons;
     QList<Triangulation> m_triangulations;
     PolygonList m_inner_polygons;
-    QPixmap * mp_sdfs_pixmap;
+    QImage * mp_sdfs_image;
     bool m_is_updating;
     bool m_is_drawing;
 };

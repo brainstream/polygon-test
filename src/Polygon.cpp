@@ -159,7 +159,7 @@ PolygonDistance::PolygonDistance(const PolygonList & _polygons)
 
 PolygonDistance::~PolygonDistance()
 {
-    for(Edge * edge : m_edges)
+    foreach(Edge * edge, m_edges)
         delete edge;
 }
 

@@ -13,49 +13,10 @@
 #include <QBrush>
 #include <QThreadPool>
 
-namespace {
-
-QColor getGradientColor(double _k)
-{
-    if(_k <= 0.2)
-    {
-        double t = _k / 0.2;
-        return QColor(
-            static_cast<int>(173 + t * (144 - 173)),
-            static_cast<int>(216 + t * (238 - 216)),
-            static_cast<int>(230 - t * (230 - 144)));
-    }
-    else if(_k <= 0.4)
-    {
-        double t = (_k - 0.2) / 0.2;
-        return QColor(
-            static_cast<int>(144 + t * (240 - 144)),
-            static_cast<int>(238 + t * (230 - 238)),
-            static_cast<int>(144 - t * 144));
-    }
-    else if(_k <= 0.6)
-    {
-        double t = (_k - 0.4) / 0.2;
-        return QColor(static_cast<int>(240 + t * (255 - 240)), static_cast<int>(230 - t * (230 - 165)), 0);
-    }
-    else if(_k <= 0.8)
-    {
-        double t = (_k - 0.6) / 0.2;
-        return QColor(255, static_cast<int>(165 - t * 165), 0);
-    }
-    else
-    {
-        double t = (_k - 0.8) / 0.2;
-        return QColor(static_cast<int>(255 - t * (255 - 139)), 0, 0);
-    }
-}
-
-} // namespace
-
 Canvas::Canvas(const Preferences & _preferences, QWidget * _parent) :
     QWidget(_parent),
     mr_preferences(_preferences),
-    mp_sdfs_pixmap(nullptr),
+    mp_sdfs_image(nullptr),
     m_is_updating(false),
     m_is_drawing(false)
 {
@@ -67,12 +28,12 @@ Canvas::Canvas(const Preferences & _preferences, QWidget * _parent) :
     setFocusPolicy(Qt::ClickFocus);
     setMouseTracking(true);
     connect(&mr_preferences, SIGNAL(changed()), this, SLOT(update()));
-    connect(this, SIGNAL(sdfPixmapReady(QPixmap*)), this, SLOT(onSdfPixmapReady(QPixmap*)));
+    connect(this, SIGNAL(sdfImageReady(QImage*)), this, SLOT(onSdfImageReady(QImage*)));
 }
 
 Canvas::~Canvas()
 {
-    delete mp_sdfs_pixmap;
+    delete mp_sdfs_image;
 }
 
 void Canvas::setWaitingState(bool _waiting)
@@ -102,6 +63,7 @@ void Canvas::paintEvent(QPaintEvent * _event)
 
     QWidget::paintEvent(_event);
     QPainter painter(this);
+
     painter.setRenderHint(QPainter::Antialiasing);
 
     {
@@ -120,7 +82,7 @@ void Canvas::paintEvent(QPaintEvent * _event)
         }
         painter.drawLine(m_drawing.last(), cursor().pos());
     }
-    else
+    else if(!m_polygons.empty())
     {
         AABB aabb = calculateAABB(m_polygons);
 
@@ -135,7 +97,7 @@ void Canvas::paintEvent(QPaintEvent * _event)
 
         if(mr_preferences.showPolygons())
         {
-            for(const Polygon & polygon : m_polygons)
+            foreach(const Polygon & polygon, m_polygons)
             {
                 QPainterPath path;
                 path.addPolygon(polygon);
@@ -164,7 +126,7 @@ void Canvas::paintEvent(QPaintEvent * _event)
         }
         if(mr_preferences.showOffsetPolygons())
         {
-            for(const Polygon & inner_polygon : m_inner_polygons)
+            foreach(const Polygon & inner_polygon, m_inner_polygons)
             {
                 QPainterPath path;
                 path.addPolygon(inner_polygon);
@@ -174,14 +136,14 @@ void Canvas::paintEvent(QPaintEvent * _event)
         }
         if(mr_preferences.showDistanceMap())
         {
-            if(mp_sdfs_pixmap)
+            if(mp_sdfs_image)
             {
-                painter.drawPixmap(aabb.min, *mp_sdfs_pixmap);
+                painter.drawImage(aabb.min, *mp_sdfs_image);
             }
             else
             {
                 can_finish_update = false;
-                drawSdfPixmap(aabb);
+                drawSdfImage(aabb);
             }
         }
     }
@@ -192,9 +154,9 @@ void Canvas::paintEvent(QPaintEvent * _event)
     }
 }
 
-void Canvas::drawSdfPixmap(const AABB & _aabb)
+void Canvas::drawSdfImage(const AABB & _aabb)
 {
-    if(mp_sdfs_pixmap)
+    if(mp_sdfs_image)
     {
         return;
     }
@@ -204,8 +166,13 @@ void Canvas::drawSdfPixmap(const AABB & _aabb)
         const uint32_t max_x = static_cast<uint32_t>(_aabb.max.x());
         const uint32_t min_y = static_cast<uint32_t>(_aabb.min.y());
         const uint32_t max_y = static_cast<uint32_t>(_aabb.max.y());
-        const uint32_t w = max_x - min_x;
-        const uint32_t h = max_y - min_y;
+        const int32_t w = max_x - min_x;
+        const int32_t h = max_y - min_y;
+        if(w <= 0 || h <= 0)
+        {
+            return;
+        }
+
         heatmap_t * hm = heatmap_new(w, h);
         PolygonDistance pd(m_polygons);
         for(uint32_t y = min_y; y < max_y; ++y)
@@ -216,27 +183,30 @@ void Canvas::drawSdfPixmap(const AABB & _aabb)
                 heatmap_add_weighted_point(hm, x - min_x, y - min_y, dist);
             }
         }
-        std::vector<unsigned char> image(w * h * 4);
-        heatmap_render_to(hm, heatmap_cs_PuBuGn_soft, &image[0]);
+        std::vector<unsigned char> data(w * h * 4);
+        heatmap_render_to(hm, heatmap_cs_PuBuGn_soft, data.data());
         heatmap_free(hm);
-        QPixmap * pixmap = new QPixmap(w, h);
-        QPainter painter(pixmap);
-        for(uint32_t y = 0; y < h; ++y)
+
+        QImage * image = new QImage(w, h, QImage::Format_RGBA8888);
+        for(int32_t y = 0; y < h; ++y)
         {
-            for(uint32_t x = 0; x < w; ++x)
+            for(int32_t x = 0; x < w; ++x)
             {
-                unsigned char * pixel = &image[(y * w + x) * 4];
-                painter.setPen(QColor(pixel[0], pixel[1], pixel[2], /*pixel[3]*/135));
-                painter.drawPoint(QPoint(x, y));
+                unsigned char * pixel = &data[(y * w + x) * 4];
+                image->setPixelColor(x, y, QColor(pixel[0], pixel[1], pixel[2], 135));
+
             }
         }
-        emit sdfPixmapReady(pixmap, QPrivateSignal());
+
+        emit sdfImageReady(image, QPrivateSignal());
     });
 }
 
-void Canvas::onSdfPixmapReady(QPixmap * _pixmap)
+void Canvas::onSdfImageReady(QImage * _pixmap)
 {
-    mp_sdfs_pixmap = _pixmap;
+    QImage * old = _pixmap;
+    std::swap(mp_sdfs_image, old);
+    if(old) delete old;
     update();
     setWaitingState(false);
 }
@@ -266,8 +236,8 @@ void Canvas::clear()
     m_inner_polygons.clear();
     m_polygons.clear();
     m_triangulations.clear();
-    delete mp_sdfs_pixmap;
-    mp_sdfs_pixmap = nullptr;
+    delete mp_sdfs_image;
+    mp_sdfs_image = nullptr;
 }
 
 void Canvas::mouseMoveEvent(QMouseEvent *)
@@ -293,11 +263,11 @@ void Canvas::keyPressEvent(QKeyEvent * _event)
     {
         m_polygons = removePolygonSelfIntersections(m_drawing);
         m_triangulations.reserve(m_polygons.size());
-        for(const Polygon & poligon : m_polygons)
+        foreach(const Polygon & poligon, m_polygons)
         {
             Triangulation triangulation = triangulate(poligon);
             m_triangulations.push_back(triangulation);
-            for(const Polygon & inner_polygon : calculateInnerPolygons(poligon, 20.0f))
+            foreach(const Polygon & inner_polygon, calculateInnerPolygons(poligon, 20.0f))
                 m_inner_polygons.push_back(inner_polygon);
         }
         for(Polygon & inner_polygon : m_inner_polygons)
