@@ -32,7 +32,6 @@ public:
 
 private:
     static Edge * makeEdge(const QPointF & _a, const QPointF & _b);
-    static qreal calculateSquaredLength(const QPointF & _vec_a, const QPointF & _vec_b);
 
 private:
     QList<Edge *> m_edges;

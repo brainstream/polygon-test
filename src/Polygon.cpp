@@ -35,6 +35,11 @@ void mapPathsToPolygonList(const Clipper2Lib::PathsD & _paths, PolygonList & _po
     }
 }
 
+inline qreal distance(const QPointF & _a, const QPointF & _b)
+{
+    return std::sqrt(std::pow(_b.x() - _a.x(), 2) + std::pow(_b.y() - _a.y(), 2));
+}
+
 } // namespace
 
 namespace mapbox {
@@ -132,8 +137,8 @@ struct PolygonDistance::Edge
 {
     QPointF a;
     QPointF b;
-    QPointF diff;
-    qreal squared_length;
+    QPointF vec_ab;
+    qreal vec_ab2;
 };
 
 PolygonDistance::PolygonDistance(const PolygonList & _polygons)
@@ -165,20 +170,14 @@ PolygonDistance::~PolygonDistance()
 
 PolygonDistance::Edge * PolygonDistance::makeEdge(const QPointF & _a, const QPointF & _b)
 {
-    QPointF::dotProduct(_a, _b);
+    const QPointF vec_ab = _b - _a;
     return new Edge
     {
         .a = _a,
         .b = _b,
-        .diff = _b - _a,
-        .squared_length = calculateSquaredLength(_a, _b)
+        .vec_ab = vec_ab,
+        .vec_ab2 = QPointF::dotProduct(vec_ab, vec_ab)
     };
-}
-
-qreal PolygonDistance::calculateSquaredLength(const QPointF & _vec_a, const QPointF & _vec_b)
-{
-    const QPointF diff = _vec_a - _vec_b;
-    return QPointF::dotProduct(diff, diff);
 }
 
 qreal PolygonDistance::calculateUnsigned(const QPointF & _point) const
@@ -186,17 +185,11 @@ qreal PolygonDistance::calculateUnsigned(const QPointF & _point) const
     qreal result = std::numeric_limits<qreal>::max();
     for(const Edge * edge : m_edges)
     {
-        const QPointF ap = _point - edge->a;
-        const qreal dot = QPointF::dotProduct(ap, edge->diff);
-        qreal t = dot / edge->squared_length;
-
-        if(t <= 0.0) t = 0.0;
-        else if(t > 1.0) t = 1.0;
-
-        const QPointF closest_point = edge->a + t * edge->diff;
-
-        const qreal sq_dist = calculateSquaredLength(_point, closest_point);
-        const qreal dist = std::sqrt(sq_dist);
+        const QPointF vec_ap = _point - edge->a;
+        const qreal ap_ab = QPointF::dotProduct(edge->vec_ab, vec_ap);
+        const qreal t = std::clamp(ap_ab / edge->vec_ab2, 0.0, 1.0);
+        const QPointF closest = edge->a + t * edge->vec_ab;
+        const qreal dist = distance(_point, closest);
         if(dist < result)
             result = dist;
     }
